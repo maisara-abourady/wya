@@ -14,19 +14,30 @@ The investment pays off as wya grows: future Claude sessions (and future you) wi
 
 ---
 
+## Input contract
+
+The engineering pipeline is **source-agnostic**. It does not depend on any particular upstream — it accepts input from a PRD-driven product pipeline, a ticket system, a Slack message, or a verbal request equally well. The only things it needs are:
+
+| Required | Form | Used for |
+|---|---|---|
+| Change description | Free-text sentence (or short paragraph). Concept-shaped: name the affected behavior using vocabulary that appears (or will appear) in some BC's `summary:` or `exports:`. | Routing the pack to the right BC; pulling relevant invariants and tests. |
+| Change ID | Kebab-case slug (e.g., `add-driver-id-type`, `fix-roster-reorder-race`). Derive from the description if no upstream ID exists. | Naming the artifacts at `.claude/context-packs/<change-id>.md` and `.claude/blast-radius/<change-id>.md`. |
+| Optional: BC hint | `<side>/<bc_name>` if you already know which BC the change targets. | Skips `context-pack`'s discovery step. |
+
+That's the entire contract. **Whatever upstream produces something that includes those, the pipeline will accept it.** No JSON schema, no required structure beyond the slug shape; the engineering skills do the structured work themselves.
+
+---
+
 ## The pipeline at a glance
 
 ```
-   UPSTREAM (PRD-side, already in place at user-skill level)
-   ─────────────────────────────────────────────────────────
-   prd-draft-builder ──► prd-authoring ──► prd-readiness ✓ ──► prd-to-change-requests
+   UPSTREAM (any source — product pipeline, ticket, ad-hoc request)
+   ────────────────────────────────────────────────────────────────
+   produces:  change description (free text)
+              change-id (kebab-case slug)
+              optional BC hint
                                                                        │
-                                                          (one change request per item)
-                                                                       │
-                                                                       ▼
-                                                              sd-change-request
-                                                                       │
-                                                                       │  change description
+                                                                       │  feeds into
                                                                        ▼
    THIS PIPELINE (engineering-side, project skills)
    ─────────────────────────────────────────────────
@@ -66,7 +77,7 @@ The investment pays off as wya grows: future Claude sessions (and future you) wi
 
 Day-to-day, the loop you'll repeat is:
 
-1. Decide what change you want to make, or pull one from `sd-change-request`. Get it down to one sentence.
+1. Get the change down to one sentence and pick a kebab-case `change-id` slug. Source doesn't matter — PRD output, ticket, ad-hoc.
 2. **Invoke `context-pack`** with that sentence. Get back a load list of the few files you need.
 3. If the change touches a public symbol or type, **invoke `design-the-seam`**. Stub the symbol, update the manifest. Lint must stay green.
 4. **Invoke `blast-radius-proof`**. Get a citation-based proof attached to the change. If you can't write it without hand-waving, the change is misshapen — go back to step 1.
@@ -300,4 +311,4 @@ LLMs degrade as context grows. Their reliability depends on being able to load *
 
 The bounded context is the locality unit. The manifest is the contract. The context pack is the load list. The seam is the contract change. The proof is the safety check. The verify is the receipt. Every piece exists to make sure that *future you* (or future Claude) can make a safe change without holding wya in their head.
 
-If you find yourself fighting a piece of this pipeline, that's data — either the convention is wrong (rare; record an evolution-log entry and adjust) or the change is misshapen (common; re-decompose via `sd-change-request`). Both are good outcomes. The bad outcome is silently working around the discipline; that's how locality is lost.
+If you find yourself fighting a piece of this pipeline, that's data — either the convention is wrong (rare; record an evolution-log entry and adjust) or the change is misshapen (common; re-decompose upstream into smaller change descriptions). Both are good outcomes. The bad outcome is silently working around the discipline; that's how locality is lost.
