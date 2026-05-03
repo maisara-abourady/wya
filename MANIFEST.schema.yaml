@@ -1,0 +1,171 @@
+# Schema for per-BC MANIFEST.yaml files in wya.
+#
+# Every bounded context at the repo root must carry a MANIFEST.yaml that
+# validates against this schema. The schema is JSON Schema (Draft 2020-12)
+# expressed in YAML so it remains diffable and human-readable.
+#
+# Authoritative interpreter: the `module-manifest` skill in `.claude/skills/`.
+# Any change to this schema also requires updating CONVENTIONS.md, the
+# `module-manifest` skill, the lint script, and an evolution-log entry.
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "wya://manifest.schema.yaml"
+title: "wya bounded-context manifest"
+type: object
+required:
+  - name
+  - version
+  - summary
+  - exports
+  - deps
+  - capabilities
+  - invariants
+  - tests
+additionalProperties: false
+
+properties:
+
+  name:
+    type: string
+    pattern: "^[a-z][a-z0-9_]*$"
+    description: |
+      BC name. Must equal the BC's directory name. Lowercase snake_case
+      (Dart package ecosystem disallows hyphens; snake_case is portable).
+
+  version:
+    type: string
+    pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-z0-9.-]+)?$"
+    description: |
+      Semver. Bumped on every change to the public surface or to invariants.
+      - Major: removed export, narrowed type, added invariant the BC didn't already satisfy.
+      - Minor: added export, added capability, added failure_mode.
+      - Patch: rare; manifest-only fixes that don't change surface.
+
+  summary:
+    type: string
+    maxLength: 200
+    description: |
+      One-sentence statement of what this BC does. Used by `context-pack`
+      to match incoming changes against BCs — keep it specific.
+
+  exports:
+    type: array
+    uniqueItems: true
+    items: { type: string }
+    description: |
+      Names re-exported from index.*. Cross-checked against the actual
+      index file by the lint script. Authoritative list of cross-BC API.
+
+  deps:
+    type: array
+    uniqueItems: true
+    items:
+      type: string
+      pattern: "^(mobile|backend|contracts)/[a-z][a-z0-9_]*$"
+    description: |
+      Other BCs this one imports from, as qualified names (<side>/<bc_name>).
+      Must equal the set of BCs actually imported in code (no extras, no
+      missing). Cross-side rules apply: mobile/* may depend only on mobile/*
+      and contracts/*; backend/* may depend only on backend/* and contracts/*;
+      contracts/* may not depend on mobile/* or backend/*. The cross-BC
+      import graph must be a DAG; circular deps are violations.
+
+  capabilities:
+    type: array
+    uniqueItems: true
+    items:
+      enum: [db, net, fs, time, rng, env, process, crypto]
+    description: |
+      Closed-set declaration of side effects this BC is allowed to perform.
+      Empty list = pure transform (the strongest possible claim).
+
+  invariants:
+    type: array
+    items: { type: string }
+    description: |
+      Properties this BC guarantees to its callers. Each is human-readable.
+      Required reading for any change touching this BC. Only edited by the
+      user — `module-manifest` never edits invariants automatically.
+
+  events_emitted:
+    type: array
+    items: { type: string }
+    default: []
+    description: "Domain events this BC publishes (if any cross-BC eventing exists)."
+
+  events_consumed:
+    type: array
+    items: { type: string }
+    default: []
+    description: "Domain events this BC subscribes to."
+
+  failure_modes:
+    type: array
+    default: []
+    items:
+      type: object
+      required: [name, surface]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: "Short name for the failure (e.g., 'unknown user', 'rate limited')."
+        surface:
+          type: string
+          description: |
+            How the failure is surfaced to callers — error type, return value,
+            log line, etc. Concrete enough that a caller can handle it.
+    description: |
+      Known failure modes and how the BC surfaces each. Caller-facing.
+      Only edited by the user.
+
+  tests:
+    type: array
+    items:
+      type: object
+      required: [path, kind]
+      additionalProperties: false
+      properties:
+        path:
+          type: string
+          description: "Path relative to the BC root."
+        kind:
+          enum: [contract, invariant, regression]
+          description: |
+            - contract: protects a cross-BC API guarantee
+            - invariant: protects an internal invariant declared above
+            - regression: protects against a specific past bug; require `protects`
+        protects:
+          type: string
+          description: "For kind=regression: bug ID, incident ID, or short description."
+    description: |
+      All test files in tests/, classified by what they protect. Lint
+      cross-checks that every file under tests/ appears here and vice versa.
+
+  token_budget_used:
+    type: integer
+    minimum: 0
+    maximum: 50000
+    default: 0
+    description: |
+      Auto-updated. Sum of code + docs + tests tokens. Refreshed on every
+      commit touching the BC. Hard cap at 50,000 — over-budget triggers
+      `token-budget-audit`.
+
+  links:
+    type: object
+    default: {}
+    additionalProperties: false
+    properties:
+      prd:
+        type: array
+        items: { type: string }
+        description: "Paths under product/ that motivated this BC."
+      evolution_log:
+        type: array
+        items: { type: string }
+        description: "Paths under .claude/evolution-log/ documenting decisions about this BC."
+      adrs:
+        type: array
+        items: { type: string }
+        description: "Architecture Decision Records, if used."

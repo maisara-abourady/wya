@@ -1,0 +1,19 @@
+name: favorite_drivers
+version: 0.2.0
+summary: User-owned roster of drivers a user has marked as favorites; supports add, remove, list, and reorder.
+exports:
+  - DriverId
+deps: []
+capabilities: []
+invariants:
+  - DriverId.value is always a non-empty string.
+events_emitted: []
+events_consumed: []
+failure_modes:
+  - name: empty driver id
+    surface: ArgumentError thrown synchronously from DriverId constructor.
+tests:
+  - path: test/driver_id_test.dart
+    kind: contract
+token_budget_used: 0
+links: {}
