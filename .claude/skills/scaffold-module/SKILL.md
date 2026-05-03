@@ -141,5 +141,5 @@ Run `arch-conventions` in lint mode against the new BC. Expect zero violations. 
 
 ## Integrations
 
-- **Consumed by:** a future `prd-to-change-requests` pass when a PRD names a new domain area.
+- **Consumed by:** any upstream that decomposes work into domain areas (PRD pipeline, ticket triage, ad-hoc) when a new BC is needed.
 - **Produces:** the directory tree that `module-manifest`, `context-pack`, `arch-conventions`, and `verify-locality` operate on.

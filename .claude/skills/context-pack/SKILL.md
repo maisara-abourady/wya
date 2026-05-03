@@ -1,12 +1,12 @@
 ---
 name: context-pack
 description: |
-  Use at the start of any code change in wya, after `sd-change-request` finalizes
-  the change request. Produces the minimal, ranked file list a session must load
-  to make the change safely — the load list. Re-run if the change scope shifts
-  mid-implementation. Trigger phrases: "context pack", "what files do I need",
-  "load list for this change", "pack for <change>", or any setup phase before
-  implementation begins.
+  Use at the start of any code change in wya, once a change description has been
+  fixed (source-agnostic — PRD output, ticket, Slack request, verbal). Produces
+  the minimal, ranked file list a session must load to make the change safely —
+  the load list. Re-run if the change scope shifts mid-implementation. Trigger
+  phrases: "context pack", "what files do I need", "load list for this change",
+  "pack for <change>", or any setup phase before implementation begins.
 ---
 
 # context-pack
@@ -15,7 +15,8 @@ Most load-bearing skill in the wya pipeline. Without it, sessions still scrape; 
 
 ## Inputs
 
-- **Change description** — free text or the output of `sd-change-request`. Required.
+- **Change description** — free-text sentence (or short paragraph). Required. Source-agnostic: a PRD-derived change request, a ticket, a Slack note, or a verbal request all work as long as the description is concrete enough to match against BC summaries and exports.
+- **Change ID** — kebab-case slug (e.g., `add-driver-id-type`). Required for naming the output artifact. Derive from the description if no upstream ID exists.
 - **Optional `bc=<side>/<name>` hint** — primary BC if known. If omitted, the skill discovers it.
 
 ## Step 1 — Identify the primary BC
@@ -94,11 +95,11 @@ invariants:
 - Next: `design-the-seam` if a public symbol changes; otherwise direct implementation.
 ```
 
-Estimate total tokens (sum of file sizes via the same heuristic the lint uses). Flag if the pack exceeds **60,000 tokens** — that means the change is too large for a single session and should be split via `sd-change-request`.
+Estimate total tokens (sum of file sizes via the same heuristic the lint uses). Flag if the pack exceeds **60,000 tokens** — that means the change is too large for a single session and should be re-decomposed upstream into smaller change descriptions.
 
 ## Step 6 — Escalate when the change doesn't fit
 
-If the change spans **more than 2 BCs**, do not silently expand the pack. Surface that the change is misshapen and route back to `sd-change-request` for splitting. The locality property is non-negotiable; widening the pack to fit defeats the purpose.
+If the change spans **more than 2 BCs**, do not silently expand the pack. Surface that the change is misshapen and route back upstream for splitting (re-decompose into smaller change descriptions). The locality property is non-negotiable; widening the pack to fit defeats the purpose.
 
 If the primary BC has no matching `exports:` for the symbol the change references, surface that the seam doesn't yet exist — route to `design-the-seam` to add it before implementation.
 
@@ -114,10 +115,10 @@ If the primary BC has no matching `exports:` for the symbol the change reference
 
 `.claude/context-packs/<change-id>.md`. Version-controlled. Referenced by every downstream skill for this change (`design-the-seam`, `blast-radius-proof`, `verify-locality`).
 
-The `<change-id>` should be the change request ID from `sd-change-request`, or a kebab-case slug derived from the change description if no upstream ID exists.
+The `<change-id>` is a kebab-case slug — derive it from the change description, or reuse an upstream ID if your change source provides one.
 
 ## Integrations
 
-- **Consumes:** all `MANIFEST.yaml` files under `mobile/`, `backend/`, `contracts/`; the change description from `sd-change-request`.
+- **Consumes:** all `MANIFEST.yaml` files under `mobile/`, `backend/`, `contracts/`; the change description from any upstream source (PRD pipeline, ticket, ad-hoc).
 - **Feeds:** `design-the-seam`, `blast-radius-proof`, the implementation session itself.
 - **Re-run trigger:** if the change scope shifts during implementation, re-run with the updated description; the previous pack file is overwritten with a version note.

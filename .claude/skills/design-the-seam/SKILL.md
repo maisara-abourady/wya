@@ -53,7 +53,7 @@ The seam document must specify each of these — none is optional:
 
 ## When the seam reveals the change is wrong
 
-If you cannot cleanly state any of the seven required outputs — especially the error model or invariants preserved — that is a signal the *change* is misshapen, not that the seam is hard. Halt and route back to `sd-change-request` for re-scoping. The cost of fixing this here is small; the cost of fixing it after implementation is large.
+If you cannot cleanly state any of the seven required outputs — especially the error model or invariants preserved — that is a signal the *change* is misshapen, not that the seam is hard. Halt and route back to the upstream change source for re-scoping. The cost of fixing this here is small; the cost of fixing it after implementation is large.
 
 ## Output artifact
 
@@ -69,4 +69,4 @@ These are committed together with the seam document.
 
 - **Consumes:** the context pack from `context-pack`, the BC's current `MANIFEST.yaml` and surface file.
 - **Feeds:** `blast-radius-proof` (which uses the seam to define the touched set), the implementation session.
-- **Routes back to:** `sd-change-request` if the seam reveals the change is misshapen; `module-manifest` if the manifest update is non-trivial.
+- **Routes back to:** the upstream change source if the seam reveals the change is misshapen; `module-manifest` if the manifest update is non-trivial.

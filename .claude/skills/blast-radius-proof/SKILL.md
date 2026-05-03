@@ -51,7 +51,7 @@ For **every BC not in the touched set** (every BC that exists in the repo but is
 | Type/signature constraint | "Symbol Y's signature is unchanged; callers cannot observe the implementation change." |
 | Cross-side rule | "BC X is on side A; the change touches side B; cross-side rule prohibits direct effect." |
 
-A justification that boils down to *"shouldn't affect"*, *"implementation detail"*, *"unlikely to break"*, or *"low risk"* is **not** a citation and **invalidates the proof**. The architecture has the wrong seam — route back to `design-the-seam` or `sd-change-request`.
+A justification that boils down to *"shouldn't affect"*, *"implementation detail"*, *"unlikely to break"*, or *"low risk"* is **not** a citation and **invalidates the proof**. The architecture has the wrong seam — route back to `design-the-seam` (to add or move a seam) or upstream (to re-decompose the change).
 
 ### 4. Open risks
 
@@ -74,7 +74,7 @@ The proof is **valid** only if:
 A proof that fails any of these is **not** a valid blast-radius proof, and the change is not safe to implement under it. The honest move is to either:
 
 - Re-scope the change so the touched set actually does have local citations — likely needs `design-the-seam` to introduce or move a seam.
-- Re-decompose the change request via `sd-change-request` if it spans too many BCs to prove locally.
+- Re-decompose the change upstream if it spans too many BCs to prove locally.
 
 ## Output artifact
 
@@ -92,4 +92,4 @@ A proof that fails any of these is **not** a valid blast-radius proof, and the c
 - **Consumes:** the context pack and (usually) the seam appended to it.
 - **Produces:** `.claude/blast-radius/<change-id>.md`.
 - **Feeds:** the implementation session, then `verify-locality` post-change.
-- **Routes back to:** `design-the-seam` when citations can't be made; `sd-change-request` when the change spans too many BCs.
+- **Routes back to:** `design-the-seam` when citations can't be made; the upstream change source when the change spans too many BCs.
