@@ -1,0 +1,10 @@
+name: favorite_drivers
+description: User-owned roster of drivers a user has marked as favorites; supports add, remove, list, and reorder.
+version: 0.2.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dev_dependencies:
+  test: ^1.24.0
